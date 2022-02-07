@@ -7,27 +7,228 @@ knit: (function(input_file, encoding) {
  encoding=encoding,
  output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r echo = FALSE}
+knitr::opts_chunk$set(eval=FALSE)
 ```
 
-## R Markdown
+# Chapter 9 Arrays and List
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+The values in a list or in an array are called *elements* or *items*.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+1. List: **Ordered** and **Immutable**
+2. Arrays: **Variables** and generally **Mutable**
 
-```{r cars}
-summary(cars)
+## List
+```{r eval=FALSE}
+> 3,4,5
+(3 4 5)
+> say (3, 4, 5).WHAT
+(List)
+> say (1..10).WHAT
+(Range)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+## Arrays
+```{r}
+> my @odd_digits = 1, 3, 5, 7, 9;
+[1 3 5 7 9]
+> my @single_digit_numbers = 0..9;
+[0 1 2 3 4 5 6 7 8 9]
+> my @weekdays = <mon tue wed thu fri>;
+[mon tue wed thu fri]
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Arrays can be **heterogenous**.
+```{r}
+> my @heterogenous-array = 1, 2.3, pi, "str", (1, 2, 4);
+[1 2.3 3.14159265358979 str (1 2 4)]
+```
+
+Unassigned arrays are empty arrays.
+```{r}
+> my @empty;
+[]
+> my @empty = (); # Explicitly declared empty arrays
+[]
+```
+
+Arrays are accessed using `@array[i]` syntax.
+```{r}
+> say "The third day is @weekdays[2]";
+The third day is wed
+> my @even-digits = 0, 2, 4, 6, 8;
+[0, 2, 4, 6, 8]
+> my @small-even_digits = @even-digits[0..2]
+[0 2 4]
+> my @min-max-even-digits = @even-digits[0, 4]
+[0 8]
+```
+
+Arrays will expand if the index of assignment correspond to items that does not exist.
+```{r}
+my @arrays = 1, 2, 3;
+@arrays[7] = 9;
+say @arrays;
+# [1 2 3 (Any) (Any) (Any) (Any) 9]
+```
+
+
+### Useful Methods
+
+#### Adding and Removing Elements
+1. `shift` Removes and returns first elements.
+2. `pop` Removes and returns last elements.
+3. `unshift` Adds an item or a list of items to the beginning of array.
+4. `push` Adds an item or a list of items to the end of an array
+
+_`push` and `unshift` **does not** flatten the elements inserted by default._
+
+Use `|` prefix operator to flatten the added array.
+```{r}
+> my @numbers = <2 4 6 7>;
+[2 4 6 7]
+> @numbers.push(<8 10>);
+[2 4 6 7 (8 10)]
+> @numbers.push(|<8 10>);
+[2 4 6 7 (8 10) 8 10]
+```
+
+The `:delete` adverb can be used to delete(and return) any elements in an array.
+The deleted elements are replaced with undefined item `(Any)`.
+```{r}
+my @fruit = <apple banana pear cherry pineapple orange>;
+my $removed = @fruit[2]:delete;
+say $removed; # pear
+say @fruit; [apple banana (Any) cherry pineapple orange]
+```
+
+
+#### Array Length
+```{r}
+> say @heterogenous-array.elems; # Return Array length
+5
+```
+
+#### Identical Arrays
+```{r}
+# eqv
+# To compare structure, type and value
+my @even = 0, 2, 4, 6, 8;
+my @even2 = reverse 8, 6, 4, 2, 0;
+say @even eqv @even2; # True
+
+# Smart match ~~
+# To compare content only
+say <1 2 3 4 5> eqv 1..5; # False
+say <1 2 3 4 5> ~~ 1..5; #True
+
+# Numeric equality ==
+# Compare array length; == coerces arguments to numeric type
+say <1 2 3 4 5> == <5 6 7 8 9>; # True
+```
+
+#### Reverse Slicing
+```{r}
+my @reverse-small-even_digits = @even-digits[reverse 0..2];
+my @reverse-small-even_digits = reverse @even-digits[0..2];
+```
+
+#### Splicing
+`splice` can add, remove, and return one or several items to or from an array.
+```{r}
+my @out_array = splice @array, $start, $num_elems, @replacement; 
+# @replacement is optional
+```
+
+#### Traversing List
+##### `for` loop
+```{r}
+my @colors = <red orange yellow green blue indigo violet>;
+for @colors -> $color {
+  say $color;
+}
+```
+
+##### Read and re-assign elements (doubly pointy block)
+
+Works on array but not list (immutable)
+```{r}
+my @colors = <red orange yellow green blue indigo violet>;
+for @colors <-> $color {
+  $color = tc $color; # turn every element Title Case
+}
+```
+
+Using topical variable `$_`
+```{r}
+for colors {
+  $_ = $_.uc
+}
+```
+
+##### By index
+```{r}
+for 0..@colors.end -> $idx {
+  say "$idx @colors[$idx]";
+}
+```
+
+##### By Keys
+
+`keys` will return a list of indices for the array or the list
+```{r}
+for keys @colors -> $idx {
+  say "$idx @colors[$idx]";
+}
+```
+
+##### By Keys-Values
+`kv` returns an interleaved sequence of indexes and values
+```{r}
+for @letters.kv -> $idx, $val {
+  say "$idx, $val";
+}
+
+my @letters = 'a'..'e';
+say @letters.kv; # (0 a 1 b 2 c 3 d 4 e)
+```
+
+##### `loop`
+C-like loop
+```{r}
+loop (my $i = 0; $i < 5; $i++){
+  say $i, "->" ~ @letters[$i];
+}
+```
+
+Infinite Loop
+```{r}
+loop{
+  # do something
+  #last if...
+}
+```
+
+
+#### Unique Elements
+```{r}
+> say <a b d c a f d g>.unique;
+(a b d c f g)
+```
+
+Use `squish` if the array is known to be **sorted**.
+
+### Placeholders
+
+`^` is a twigil, which state that the variable is a **placeholder parameter** or a **self declared positional parameter**. The variables are associated to the input according to their **lexicographic order**.
+```{r}
+my @letters = 'a'..'e';
+for @letters.kv{
+  say "$^a -> $^b"; # 'a' comes before 'b' hence first input is given to $a
+}
+```
+
+## Stacks and Queues
+
+1. `stack` is a last in/ first out (LIFO) data structure
+2. `queue` is a first in/ first out (FIFO) data structure
