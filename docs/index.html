@@ -280,7 +280,12 @@ my @reverse-small-even_digits = reverse @even-digits[0..2];</code></pre>
 <h4>Sorting Arrays or Lists</h4>
 <p>Default sort, is the smart sort, which use internal UNICODE representation to sort the data.</p>
 <pre class="r"><code>say sort &lt;4 6 2 9 1 5 11&gt;;</code></pre>
-<p>The <code>sort</code> routine take 2 arguments, a code object and a list of item. If no code object is given, <code>cmp</code> is used. 1. <code>leg</code> - lexicographic comparisons 2. <code>&lt;=&gt;</code> - coerces to numeric and does numeric sort 3. <code>cmp</code> - compare string with string semantics and numbers with number semantics</p>
+<p>The <code>sort</code> routine take 2 arguments, a code object and a list of item. If no code object is given, <code>cmp</code> is used.</p>
+<ol style="list-style-type: decimal">
+<li><code>leg</code> - lexicographic comparisons</li>
+<li><code>&lt;=&gt;</code> - coerces to numeric and does numeric sort</li>
+<li><code>cmp</code> - compare string with string semantics and numbers with number semantics</li>
+</ol>
 <pre class="r"><code># Default/ cmp
 say sort &lt;4 6 2 9 1 5 11&gt;;
 say sort {$^a cmp $^b}, &lt;4 6 2 9 1 5 11&gt;;
