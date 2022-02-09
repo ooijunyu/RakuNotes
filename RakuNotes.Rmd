@@ -174,7 +174,7 @@ sub my_comp($str1,$str2){
   my $cmp1 = $0 if $str1 ~~ /\d+(\w+)/;
   my $cmp2 = $0 if $str1 ~~ /\d+(\w+)/;
   return $cmp1 cmp $cmp2;
-}
+} 
 
 say sort &my_comp, <22ac 34bd 56aa3 12c; 4abc( 1ca 45bc;
 # (56aa3 4abc( 22ac 45bc 34bd 12c; 1ca)
