@@ -214,6 +214,17 @@ The third day is wed
 @arrays[7] = 9;
 say @arrays;
 # [1 2 3 (Any) (Any) (Any) (Any) 9]</code></pre>
+</div>
+<div id="fixed-sized-typed-and-shaped" class="section level2">
+<h2>Fixed-Sized, Typed, and Shaped</h2>
+<pre class="r"><code>my Int @numbers = 1..20;
+my @months[12] = 1..7; # [1 2 3 4 5 6 7 (Any) (Any) (Any) (Any) (Any)]
+
+# Multi-dimensional
+my @employees
+@employees[0;0] = &quot;Liz&quot;;
+@employees[0;1] = 3000;
+@employess[1] = [&quot;Bob&quot;; 2500];</code></pre>
 <div id="useful-methods" class="section level3">
 <h3>Useful Methods</h3>
 <div id="adding-and-removing-elements" class="section level4">
@@ -265,6 +276,37 @@ say &lt;1 2 3 4 5&gt; == &lt;5 6 7 8 9&gt;; # True</code></pre>
 <pre class="r"><code>my @reverse-small-even_digits = @even-digits[reverse 0..2];
 my @reverse-small-even_digits = reverse @even-digits[0..2];</code></pre>
 </div>
+<div id="sorting-arrays-or-lists" class="section level4">
+<h4>Sorting Arrays or Lists</h4>
+<p>Default sort, is the smart sort, which use internal UNICODE representation to sort the data.</p>
+<pre class="r"><code>say sort &lt;4 6 2 9 1 5 11&gt;;</code></pre>
+<p>The <code>sort</code> routine take 2 arguments, a code object and a list of item. If no code object is given, <code>cmp</code> is used. 1. <code>leg</code> - lexicographic comparisons 2. <code>&lt;=&gt;</code> - coerces to numeric and does numeric sort 3. <code>cmp</code> - compare string with string semantics and numbers with number semantics</p>
+<pre class="r"><code># Default/ cmp
+say sort &lt;4 6 2 9 1 5 11&gt;;
+say sort {$^a cmp $^b}, &lt;4 6 2 9 1 5 11&gt;;
+
+# Reverse sort
+say sort {$^b cmp $^a}, &lt;4 6 2 9 1 5 11&gt;;
+say reverse sort &lt;4 6 2 9 1 5 11&gt;;
+
+# Custom sort
+say sort {$^a.lc leg $^b.lc}, &lt;a ab abc A bc BAC AC&gt;;
+
+# To sort data of leading digits followed by letters and other characters,
+# sorted by the letters
+sub my_comp($str1,$str2){
+  my $cmp1 = $0 if $str1 ~~ /\d+(\w+)/;
+  my $cmp2 = $0 if $str1 ~~ /\d+(\w+)/;
+  return $cmp1 cmp $cmp2;
+} 
+
+say sort &amp;my_comp, &lt;22ac 34bd 56aa3 12c; 4abc( 1ca 45bc;
+# (56aa3 4abc( 22ac 45bc 34bd 12c; 1ca)</code></pre>
+<p><code>sort</code> code block with 1 parameters. The code block will not do the comparison, instead implementing transformation before using the default <code>cmp</code>.</p>
+<p>Transformed values are <strong>cached</strong>, so the transformation is done only once for each item</p>
+<pre class="r"><code>say sort {$_.lc}, &lt;a ab abc A bc BAC AC&gt;;
+say sort {$_.abs}, &lt;4 -2 5 3 -12 42 8 -7&gt;;</code></pre>
+</div>
 <div id="splicing" class="section level4">
 <h4>Splicing</h4>
 <p><code>splice</code> can add, remove, and return one or several items to or from an array.</p>
@@ -275,6 +317,7 @@ my @reverse-small-even_digits = reverse @even-digits[0..2];</code></pre>
 <h4>Traversing List</h4>
 <div id="for-loop" class="section level5">
 <h5><code>for</code> loop</h5>
+<p>When traversion, <code>$_</code> is an alias to the items itself. Changing it will reflect in the array.</p>
 <pre class="r"><code>my @colors = &lt;red orange yellow green blue indigo violet&gt;;
 for @colors -&gt; $color {
   say $color;
@@ -343,6 +386,48 @@ for @letters.kv{
   say &quot;$^a -&gt; $^b&quot;; # &#39;a&#39; comes before &#39;b&#39; hence first input is given to $a
 }</code></pre>
 </div>
+</div>
+<div id="reduce" class="section level2">
+<h2>Reduce</h2>
+<p>An operation that combines a sequence of elements into a single value is called a reduction operation because its effect is to reduce all the items into one element.</p>
+<pre class="r"><code>my $sum = reduce {$^a + $^b}, 1..10;
+my $fact10 = reduce {$^a * $^b}, 1..10;</code></pre>
+<div id="reduction-metaoperator" class="section level3">
+<h3>Reduction Metaoperator</h3>
+<p>The <code>[...]</code> metaoperator iteratively applies the operator to all the values of the list to produce a single value.</p>
+<pre class="r"><code>say [+] 1, 2, 3, 4; # 10
+say [\+] 1, 2, 3, 4; # (1 3 6 10)
+
+sub fact(Int $x){
+  [*] 1..$x;
+}
+
+say [&lt;] 3, 5, 7, 6; # False
+say [lt] &lt;a c d f r t y&gt;; #True</code></pre>
+</div>
+</div>
+<div id="map" class="section level2">
+<h2>Map</h2>
+<p>Map “maps” a function to each of the elements in a sequence.</p>
+<p>The <code>map</code> function iteratively assigns each item to <code>$_</code>, applies the code block to <code>$_</code> in order to create new values, and return a list of these new values.</p>
+<pre class="r"><code>my @lc_words = &lt;one tow three&gt;;
+my @all_caps = map {.uc}, @lc_words; # [ONE TWO THREE]
+my @all_caps = map -&gt; $word {$word.uc}, @lc_words; # [ONE TWO THREE]
+my @all_caps = map {$^a.uc}, @lc_words; # [ONE TWO THREE]</code></pre>
+<p>The first argument to <code>map</code> can be a code reference</p>
+<pre class="r"><code>sub double-sq-root-plus-one (Numeric $x){
+  1 + 2 * sqrt $x;
+}
+
+my @results = map &amp;double-sq-root-plus-one, 4, 16, 42;</code></pre>
+</div>
+<div id="filter" class="section level2">
+<h2>Filter</h2>
+<p>It selects some of the elements and filters out the other.</p>
+<p>The <code>grep</code> function iteratively assigns each item to <code>$_</code> and applies code block following the <code>grep</code> keyword to <code>$_</code>, and returns a list of the values for which the code block evaluates to true.</p>
+<pre class="r"><code>my @filtered = grep {/&lt;[aeiouy]&gt;/}, @input;
+my @filtered = grep &amp;contains-vowel, @input; # Can be used with code reference.
+my @evens =  grep {$_ %% 2}, 1..10;</code></pre>
 </div>
 <div id="stacks-and-queues" class="section level2">
 <h2>Stacks and Queues</h2>
