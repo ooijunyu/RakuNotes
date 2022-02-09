@@ -153,9 +153,11 @@ say sort <4 6 2 9 1 5 11>;
 ```
 
 The `sort` routine take 2 arguments, a code object and a list of item. If no code object is given, `cmp` is used.
+
 1. `leg` - lexicographic comparisons
 2. `<=>` - coerces to numeric and does numeric sort
 3. `cmp` - compare string with string semantics and numbers with number semantics
+
 ```{r}
 # Default/ cmp
 say sort <4 6 2 9 1 5 11>;
